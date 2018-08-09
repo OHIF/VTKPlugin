@@ -1,3 +1,5 @@
+'use strict';
+
 // TODO: Should be another place to get this from?
 const { VTKUtils } = window;
 const { ViewportPlugin } = OHIF.plugins;
@@ -23,7 +25,8 @@ class VolumeRenderingPlugin extends ViewportPlugin {
             displaySet = ViewportPlugin.getDisplaySet(viewportIndex);
         }
 
-        const imageData = VTKUtils.getImageData(displaySet);
+        const imageDataObject = VTKUtils.getImageData(displaySet);
+        const imageData = imageDataObject.vtkImageData;
 
         div.innerHTML = '';
 
@@ -83,8 +86,6 @@ class VolumeRenderingPlugin extends ViewportPlugin {
 
 
 OHIF.plugins.entryPoints["VolumeRenderingPlugin"] = function () {
-    console.warn('VolumeRendering entryPoint');
-
     const volumeRenderingPlugin = new VolumeRenderingPlugin();
     volumeRenderingPlugin.setup();
 

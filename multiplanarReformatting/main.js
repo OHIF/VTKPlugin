@@ -1,4 +1,9 @@
+'use strict';
+
+// TODO: Should be another place to get this from?
+const { VTKUtils } = window;
 const { ViewportPlugin } = OHIF.plugins;
+const { MPR, ohifInteractorStyleSlice } = VTKUtils;
 
 class MultiplanarReformattingPlugin extends ViewportPlugin {
     constructor(options = {}) {
@@ -14,16 +19,47 @@ class MultiplanarReformattingPlugin extends ViewportPlugin {
         console.warn(`${this.name}: Setup Complete`);
     }
 
-    setupViewport(div, { viewportIndex = 0 }, displaySet) {
+    setupViewport(div, viewportData, displaySet) {
+        const { viewportIndex } = viewportData;
+        let { viewDirection } = viewportData.pluginData;
+
         console.warn(`${this.name}|setupViewport: viewportIndex: ${viewportIndex}`);
 
         if (!displaySet) {
             displaySet = ViewportPlugin.getDisplaySet(viewportIndex);
         }
 
-        const imageData = getImageData(displaySet);
+        const imageDataObject = VTKUtils.getImageData(displaySet);
+        const imageData = imageDataObject.vtkImageData;
 
         div.innerHTML = '';
+
+        /*
+
+        --- For debugging purposes ---
+
+        div.style.color = '#91b9cd';
+        const p2 = document.createElement('div');
+        p2.id = 'p2';
+        div.appendChild(p2);
+
+        const p21 = document.createElement('div');
+        p21.id = 'p21';
+        div.appendChild(p21);
+
+        const p22 = document.createElement('div');
+        p22.id = 'p22';
+        div.appendChild(p22);
+
+        const p3 = document.createElement('div');
+        p3.id = 'p3';
+        div.appendChild(p3);
+
+        const p4 = document.createElement('div');
+        p4.id = 'p4';
+        div.appendChild(p4);
+
+        */
 
         const volumeViewer = vtk.Rendering.Misc.vtkGenericRenderWindow.newInstance({
             background: [0, 0, 0],
@@ -38,56 +74,70 @@ class MultiplanarReformattingPlugin extends ViewportPlugin {
         // div.querySelector('canvas').style.height = '100%';
         volumeViewer.resize();
 
-        const actor = VolumeRenderingPlugin.setupVTKActor(imageData);
-        installVTKViewer(volumeViewer, actor);
+        const actor = MultiplanarReformattingPlugin.setupVTKActor(imageData);
+        const renderer = volumeViewer.getRenderer();
+        const renderWindow = volumeViewer.getRenderWindow();
+
+        renderer.addVolume(actor);
+
+        const scanDirection = imageDataObject.orientation;
+        if (!viewDirection) {
+            console.warn('No View Direction provided!');
+            viewDirection = scanDirection;
+        }
+
+        const mode = MPR.computeSlicingMode(scanDirection, viewDirection);
+        const imageMapper = actor.getMapper();
+
+        console.warn(imageData);
+        imageMapper.setInputData(imageData);
+        imageMapper.setSlicingMode(mode);
+
+        const IPP = MPR.computeIPP(imageDataObject);
+        const interactorStyle = ohifInteractorStyleSlice.newInstance();
+        const initialValues = {
+            currentXIndex: Math.round(imageDataObject.dimensions[0] / 2),
+            currentYIndex: Math.round(imageDataObject.dimensions[1] / 2),
+            currentZIndex: Math.round(imageDataObject.dimensions[2] / 2),
+            xPositions: IPP.x,
+            yPositions: IPP.y,
+            zPositions: IPP.z,
+            xSpacing: imageDataObject.spacing[0],
+            ySpacing: imageDataObject.spacing[1],
+            zSpacing: imageDataObject.spacing[2]
+        }
+
+        console.warn('initialValues', initialValues);
+
+        interactorStyle.setDirectionalProperties(initialValues);
+        interactorStyle.setInteractionMode('IMAGE_SLICE');
+        renderWindow.getInteractor().setInteractorStyle(interactorStyle);
+
+        renderer.resetCamera();
+        renderer.resetCameraClippingRange();
+        console.warn(`scanDirection: ${scanDirection}`);
+        console.warn(`viewDirection: ${viewDirection}`);
+        interactorStyle.moveSliceByWheel(0);
+        MPR.computeCamera(scanDirection, viewDirection, renderer.getActiveCamera());
+
+        renderWindow.render();
     }
 
     static setupVTKActor(imageData) {
-        const mapper = vtk.Rendering.Core.vtkVolumeMapper.newInstance();
+        const mapper = vtk.Rendering.Core.vtkImageMapper.newInstance();
         mapper.setInputData(imageData);
 
-        const actor = vtk.Rendering.Core.vtkVolume.newInstance();
+        const actor = vtk.Rendering.Core.vtkImageSlice.newInstance();
         actor.setMapper(mapper);
-
-        // create color and opacity transfer functions
-        const ctfun = vtk.Rendering.Core.vtkColorTransferFunction.newInstance();
-
-        ctfun.addRGBPoint(10.0, 0.4, 0.2, 0.0);
-        ctfun.addRGBPoint(100.0, 1.0, 1.0, 1.0);
-
-        const ofun = vtk.Common.DataModel.vtkPiecewiseFunction.newInstance();
-        ofun.addPoint(0.0, 0.0);
-        ofun.addPoint(200.0, 0.9);
-        ofun.addPoint(1000.0, 0.9);
-
-        actor.getProperty().setRGBTransferFunction(0, ctfun);
-        actor.getProperty().setScalarOpacity(0, ofun);
-        actor.getProperty().setScalarOpacityUnitDistance(0, 4.5);
-        actor.getProperty().setInterpolationTypeToLinear();
-        actor.getProperty().setUseGradientOpacity(0, true);
-        actor.getProperty().setGradientOpacityMinimumValue(0, 15);
-        actor.getProperty().setGradientOpacityMinimumOpacity(0, 0.0);
-        actor.getProperty().setGradientOpacityMaximumValue(0, 100);
-        actor.getProperty().setGradientOpacityMaximumOpacity(0, 1.0);
-        //actor.getProperty().setShade(true);
-        actor.getProperty().setAmbient(0.7);
-        actor.getProperty().setDiffuse(0.7);
-        actor.getProperty().setSpecular(0.3);
-        actor.getProperty().setSpecularPower(8.0);
 
         return actor;
     }
-
-    // return an image at index in the requested orientation
-    extractSlice(requestedOrientation,index){
-
-    }
 }
 
-OHIFPlugin.entryPoints["MultiplanarReformattingPlugin"] = function () {
-    let multiplanarReformattingPlugin = new MultiplanarReformattingPlugin();
+OHIF.plugins.entryPoints["MultiplanarReformattingPlugin"] = function () {
+    const multiplanarReformattingPlugin = new MultiplanarReformattingPlugin();
     multiplanarReformattingPlugin.setup();
 
-    OHIFPlugin.MultiplanarReformattingPlugin = multiplanarReformattingPlugin;
+    OHIF.plugins.MultiplanarReformattingPlugin = multiplanarReformattingPlugin;
 };
 
