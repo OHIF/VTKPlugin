@@ -8,7 +8,6 @@ const plugin = {
     name: "MultiplanarReformattingPlugin",
     url: OHIF.utils.absoluteUrl("plugins/VTKPlugin/multiplanarReformatting/main.js"),
     allowCaching: false,
-    module: true,
     moduleURLs: [
         OHIF.utils.absoluteUrl("plugins/VTKPlugin/lib/index.js"),
     ],

@@ -8,7 +8,6 @@ const plugin = {
     name: "VolumeRenderingPlugin",
     url: OHIF.utils.absoluteUrl("plugins/VTKPlugin/volumeRendering/main.js"),
     allowCaching: false,
-    module: true,
     moduleURLs: [
         OHIF.utils.absoluteUrl("plugins/VTKPlugin/lib/index.js"),
     ],
