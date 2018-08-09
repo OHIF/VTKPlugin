@@ -1,11 +1,6 @@
-'use strict';
-
-// TODO: Should be another place to get this from?
-const { VTKUtils } = window;
-const { ViewportPlugin } = OHIF.plugins;
-const { MPR, ohifInteractorStyleSlice } = VTKUtils;
-
-class MultiplanarReformattingPlugin extends ViewportPlugin {
+// Define with var here so that we can continuously reload this code after making
+// modifications
+var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends OHIF.plugins.ViewportPlugin {
     constructor(options = {}) {
         super("MultiplanarReformattingPlugin");
 
@@ -26,9 +21,10 @@ class MultiplanarReformattingPlugin extends ViewportPlugin {
         console.warn(`${this.name}|setupViewport: viewportIndex: ${viewportIndex}`);
 
         if (!displaySet) {
-            displaySet = ViewportPlugin.getDisplaySet(viewportIndex);
+            displaySet = OHIF.plugins.ViewportPlugin.getDisplaySet(viewportIndex);
         }
 
+        const { VTKUtils } = window;
         const imageDataObject = VTKUtils.getImageData(displaySet);
         const imageData = imageDataObject.vtkImageData;
 
@@ -86,8 +82,8 @@ class MultiplanarReformattingPlugin extends ViewportPlugin {
             viewDirection = scanDirection;
         }
 
-        const mode = MPR.computeSlicingMode(scanDirection, viewDirection);
-        const imageMapper = actor.getMapper();
+        const { MPR, ohifInteractorStyleSlice } = VTKUtils;
+        const mode = MPR.computeSlicingMode(scanDirection, viewDirection);        const imageMapper = actor.getMapper();
 
         console.warn(imageData);
         imageMapper.setInputData(imageData);

@@ -1,4 +1,7 @@
 # Build and copy the StandaloneViewer into the static directory
+rm -rf build
+rm -rf Viewers
+
 mkdir build
 git clone https://github.com/OHIF/Viewers.git
 cd Viewers/StandaloneViewer
