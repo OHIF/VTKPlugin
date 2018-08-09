@@ -1,10 +1,4 @@
-'use strict';
-
-// TODO: Should be another place to get this from?
-const { VTKUtils } = window;
-const { ViewportPlugin } = OHIF.plugins;
-
-class VolumeRenderingPlugin extends ViewportPlugin {
+var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.ViewportPlugin {
     constructor(options = {}) {
         super("VolumeRenderingPlugin");
 
@@ -22,9 +16,10 @@ class VolumeRenderingPlugin extends ViewportPlugin {
         console.warn(`${this.name}|setupViewport: viewportIndex: ${viewportIndex}`);
 
         if (!displaySet) {
-            displaySet = ViewportPlugin.getDisplaySet(viewportIndex);
+            displaySet = OHIF.plugins.ViewportPlugin.getDisplaySet(viewportIndex);
         }
 
+        const { VTKUtils } = window;
         const imageDataObject = VTKUtils.getImageData(displaySet);
         const imageData = imageDataObject.vtkImageData;
 
