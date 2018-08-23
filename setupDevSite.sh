@@ -1,4 +1,18 @@
-rm -rf dev
+if [ -e dev ]
+then
+  read -p "You have a dev directory already - okay to delete it? " -n 1 -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]]
+  then
+      rm -rf dev
+  else
+      echo
+      echo "Okay, won't do anything then"
+      exit
+  fi
+fi
+
+echo "Okay, installing dev environment"
 
 mkdir dev
 cd dev

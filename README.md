@@ -29,6 +29,22 @@ OHIF.plugins.VolumeRenderingPlugin.setViewportToPlugin(0)
 
 ## Development
 
+This will install a local copy of the OHIFViewer and let you run a server that can be used
+for plugin development.
+
+You will get:
+
+* a local scratch copy of the OHIF StandaloneViewer running on port 3000
+* a web server to serve your plugin code on port 8000
+* sample data from the links below will be pulled from public data stored on Amazon S3
+
+### Prerequisites
+
+* Run on a linux/mac environment with bash (windows not supported or tested)
+* All the things needed to build [OHIFViewers](http://github.com/OHIF/Viewers)
+* [http-server](https://www.npmjs.com/package/http-server)
+
+
 1. Create a copy of the OHIF Standalone Viewer Meteor app (i.e. not built into a static site yet)
 
   ````bash
