@@ -4,6 +4,11 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
 
         this.description = "VolumeRendering OHIF Plugin";
 
+        this.controllerWidget = vtk.Interaction.UI.vtkVolumeController.newInstance({
+            size: [400, 150],
+            rescaleColorMap: true,
+        });
+
         OHIF.plugins.VTKDataCache = OHIF.plugins.VTKDataCache || {};
         OHIF.plugins.VTKDataCache.imageDataCache = new Map;
     }
@@ -12,12 +17,21 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         console.warn(`${this.name}: Setup Complete`);
     }
 
+
+    static installVTKVolumeController(volumeController,volumeViewer, actor,dark) {
+        const renderWindow = volumeViewer.getRenderWindow();
+        volumeController.setupContent(renderWindow, actor, dark);
+        volumeController.render();
+    }
+
     setupViewport(div, { viewportIndex = 0 }, displaySet) {
         console.warn(`${this.name}|setupViewport: viewportIndex: ${viewportIndex}`);
 
         if (!displaySet) {
             displaySet = OHIF.plugins.ViewportPlugin.getDisplaySet(viewportIndex);
         }
+
+        div.style.position = "relative";
 
         const { VTKUtils } = window;
         const imageDataObject = VTKUtils.getImageData(displaySet);
@@ -29,6 +43,8 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
             background: [0, 0, 0],
         });
 
+
+
         volumeViewer.setContainer(div);
 
         // TODO: VTK's canvas currently does not fill the viewport element
@@ -39,7 +55,15 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         volumeViewer.resize();
 
         const actor = VolumeRenderingPlugin.setupVTKActor(imageData);
+
+
+
+
         VTKUtils.installVTKViewer(volumeViewer, actor);
+
+        const isDark = true;
+        VolumeRenderingPlugin.installVTKVolumeController(this.controllerWidget,volumeViewer,actor,isDark);
+        this.controllerWidget.setContainer(div);
     }
 
     static setupVTKActor(imageData) {
