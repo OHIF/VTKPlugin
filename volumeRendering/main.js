@@ -18,6 +18,7 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         if (!displaySet) {
             displaySet = OHIF.plugins.ViewportPlugin.getDisplaySet(viewportIndex);
         }
+      
 
         const { VTKUtils } = window;
         const imageDataObject = VTKUtils.getImageData(displaySet);

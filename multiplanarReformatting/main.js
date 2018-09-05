@@ -74,7 +74,7 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         const renderer = volumeViewer.getRenderer();
         const renderWindow = volumeViewer.getRenderWindow();
 
-        renderer.addVolume(actor);
+        renderer.addActor(actor);
 
         const scanDirection = imageDataObject.orientation;
         if (!viewDirection) {
