@@ -15,6 +15,7 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
     }
 
     setupViewport(div, viewportData, displaySet) {
+        const viewportWrapper =  div.parentElement;
         const { viewportIndex } = viewportData;
         let { viewDirection } = viewportData.pluginData;
 
@@ -30,32 +31,9 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
 
         div.innerHTML = '';
 
-        /*
 
-        --- For debugging purposes ---
 
-        div.style.color = '#91b9cd';
-        const p2 = document.createElement('div');
-        p2.id = 'p2';
-        div.appendChild(p2);
 
-        const p21 = document.createElement('div');
-        p21.id = 'p21';
-        div.appendChild(p21);
-
-        const p22 = document.createElement('div');
-        p22.id = 'p22';
-        div.appendChild(p22);
-
-        const p3 = document.createElement('div');
-        p3.id = 'p3';
-        div.appendChild(p3);
-
-        const p4 = document.createElement('div');
-        p4.id = 'p4';
-        div.appendChild(p4);
-
-        */
 
         const volumeViewer = vtk.Rendering.Misc.vtkGenericRenderWindow.newInstance({
             background: [0, 0, 0],
@@ -82,6 +60,37 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
             viewDirection = scanDirection;
         }
 
+
+
+        viewportWrapper.style.color = '#91b9cd';
+        viewportWrapper.style.position="relative";
+
+        const parent = document.createElement('div');
+        parent.style.position="absolute";
+        parent.style.top="0";
+        parent.id = viewDirection;
+        const SliceNumber = document.createElement('div');
+        SliceNumber.id = 'SliceNumber';
+        parent.appendChild(SliceNumber);
+
+        const Position = document.createElement('div');
+        Position.id = 'Position';
+        parent.appendChild(Position);
+
+        const WorldPosition = document.createElement('div');
+        WorldPosition.id = 'WorldPosition';
+        parent.appendChild(WorldPosition);
+
+        const CameraPosition = document.createElement('div');
+        CameraPosition.id = 'CameraPosition';
+        parent.appendChild(CameraPosition);
+
+        const SlicePosition = document.createElement('div');
+        SlicePosition.id = 'SlicePosition';
+        parent.appendChild(SlicePosition);
+        viewportWrapper.appendChild(parent);
+
+
         const { MPR, ohifInteractorStyleSlice } = VTKUtils;
         const mode = MPR.computeSlicingMode(scanDirection, viewDirection);        const imageMapper = actor.getMapper();
 
@@ -107,6 +116,7 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
 
         interactorStyle.setDirectionalProperties(initialValues);
         interactorStyle.setInteractionMode('IMAGE_SLICE');
+        interactorStyle.setViewDirection(viewDirection);
         renderWindow.getInteractor().setInteractorStyle(interactorStyle);
 
         renderer.resetCamera();
