@@ -14,8 +14,41 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         console.warn(`${this.name}: Setup Complete`);
     }
 
+    setupViewportText(divParentElement,viewDirection,displaySet){
+
+        console.log(displaySet);
+        divParentElement.style.color = '#91b9cd';
+        divParentElement.style.position="relative";
+
+        const parent = document.createElement('div');
+        parent.style.position="absolute";
+        parent.style.top="0";
+        parent.id = viewDirection;
+        const SliceNumber = document.createElement('div');
+        SliceNumber.id = 'SliceNumber';
+        parent.appendChild(SliceNumber);
+
+        const Position = document.createElement('div');
+        Position.id = 'Position';
+        parent.appendChild(Position);
+
+        const PatientName = document.createElement('div');
+        PatientName.id = 'PatientName';
+        parent.appendChild(PatientName);
+
+        const CameraPosition = document.createElement('div');
+        CameraPosition.id = 'CameraPosition';
+        parent.appendChild(CameraPosition);
+
+        const SlicePosition = document.createElement('div');
+        SlicePosition.id = 'SlicePosition';
+        parent.appendChild(SlicePosition);
+        divParentElement.appendChild(parent);
+
+    }
+
     setupViewport(div, viewportData, displaySet) {
-        const viewportWrapper =  div.parentElement;
+        const divParentElement =  div.parentElement;
         const { viewportIndex } = viewportData;
         let { viewDirection } = viewportData.pluginData;
 
@@ -30,9 +63,6 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         const imageData = imageDataObject.vtkImageData;
 
         div.innerHTML = '';
-
-
-
 
 
         const volumeViewer = vtk.Rendering.Misc.vtkGenericRenderWindow.newInstance({
@@ -61,38 +91,12 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         }
 
 
-
-        viewportWrapper.style.color = '#91b9cd';
-        viewportWrapper.style.position="relative";
-
-        const parent = document.createElement('div');
-        parent.style.position="absolute";
-        parent.style.top="0";
-        parent.id = viewDirection;
-        const SliceNumber = document.createElement('div');
-        SliceNumber.id = 'SliceNumber';
-        parent.appendChild(SliceNumber);
-
-        const Position = document.createElement('div');
-        Position.id = 'Position';
-        parent.appendChild(Position);
-
-        const WorldPosition = document.createElement('div');
-        WorldPosition.id = 'WorldPosition';
-        parent.appendChild(WorldPosition);
-
-        const CameraPosition = document.createElement('div');
-        CameraPosition.id = 'CameraPosition';
-        parent.appendChild(CameraPosition);
-
-        const SlicePosition = document.createElement('div');
-        SlicePosition.id = 'SlicePosition';
-        parent.appendChild(SlicePosition);
-        viewportWrapper.appendChild(parent);
+        this.setupViewportText(divParentElement,viewDirection,displaySet);
 
 
         const { MPR, ohifInteractorStyleSlice } = VTKUtils;
-        const mode = MPR.computeSlicingMode(scanDirection, viewDirection);        const imageMapper = actor.getMapper();
+        const mode = MPR.computeSlicingMode(scanDirection, viewDirection);
+        const imageMapper = actor.getMapper();
 
         console.warn(imageData);
         imageMapper.setInputData(imageData);
@@ -100,10 +104,17 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
 
         const IPP = MPR.computeIPP(imageDataObject);
         const interactorStyle = ohifInteractorStyleSlice.newInstance();
+        console.assert(imageDataObject.dimensions[0] > 0);
+        console.assert(imageDataObject.dimensions[1] > 0);
+        console.assert(imageDataObject.dimensions[2] > 0);
+        const cx = Math.floor((imageDataObject.dimensions[0] - 1) / 2);
+        const cy = Math.floor((imageDataObject.dimensions[1] - 1) / 2);
+        const cz = Math.floor((imageDataObject.dimensions[2] - 1) / 2);
         const initialValues = {
-            currentXIndex: Math.round(imageDataObject.dimensions[0] / 2),
-            currentYIndex: Math.round(imageDataObject.dimensions[1] / 2),
-            currentZIndex: Math.round(imageDataObject.dimensions[2] / 2),
+            // zero based indexing;
+            currentXIndex: cx,
+            currentYIndex: cy,
+            currentZIndex: cz,
             xPositions: IPP.x,
             yPositions: IPP.y,
             zPositions: IPP.z,
@@ -117,6 +128,7 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         interactorStyle.setDirectionalProperties(initialValues);
         interactorStyle.setInteractionMode('IMAGE_SLICE');
         interactorStyle.setViewDirection(viewDirection);
+        interactorStyle.setDisplaySet(displaySet);
         renderWindow.getInteractor().setInteractorStyle(interactorStyle);
 
         renderer.resetCamera();
@@ -127,6 +139,7 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         MPR.computeCamera(scanDirection, viewDirection, renderer.getActiveCamera());
 
         renderWindow.render();
+
     }
 
     static setupVTKActor(imageData) {
