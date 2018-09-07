@@ -15,35 +15,53 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
     }
 
     setupViewportText(divParentElement,viewDirection,displaySet){
-
         console.log(displaySet);
         divParentElement.style.color = '#91b9cd';
         divParentElement.style.position="relative";
-
-        const parent = document.createElement('div');
-        parent.style.position="absolute";
-        parent.style.top="0";
-        parent.id = viewDirection;
-        const SliceNumber = document.createElement('div');
-        SliceNumber.id = 'SliceNumber';
-        parent.appendChild(SliceNumber);
-
-        const Position = document.createElement('div');
-        Position.id = 'Position';
-        parent.appendChild(Position);
-
+        ///////// TOP LEFT
+        const topLeftParent = document.createElement('div');
+        topLeftParent.style.position="absolute";
+        topLeftParent.style.top="0";
+        topLeftParent.id = viewDirection + "TopLeft";
         const PatientName = document.createElement('div');
         PatientName.id = 'PatientName';
-        parent.appendChild(PatientName);
+        topLeftParent.appendChild(PatientName);
+        divParentElement.appendChild(topLeftParent);
+        //////////// BOT LEFT
+        const botLeftParent = document.createElement('div');
+        botLeftParent.style.position="absolute";
+        botLeftParent.style.bottom="0";
+        botLeftParent.id = viewDirection + "BottomLeft";
+        const SliceNumber = document.createElement('div');
+        SliceNumber.id = 'SliceNumber';
+        botLeftParent.appendChild(SliceNumber);
+        const Position = document.createElement('div');
+        Position.id = 'Position';
+        botLeftParent.appendChild(Position);
 
-        const CameraPosition = document.createElement('div');
-        CameraPosition.id = 'CameraPosition';
-        parent.appendChild(CameraPosition);
+        const ViewDirection = document.createElement('div');
+        ViewDirection.id = 'ViewDirection';
+        botLeftParent.appendChild(ViewDirection);
 
-        const SlicePosition = document.createElement('div');
-        SlicePosition.id = 'SlicePosition';
-        parent.appendChild(SlicePosition);
-        divParentElement.appendChild(parent);
+        const SeriesDescription = document.createElement('div');
+        SeriesDescription.id = 'SeriesDescription';
+        botLeftParent.appendChild(SeriesDescription);
+        divParentElement.appendChild(botLeftParent);
+        /////////// TOP RIGHT
+        const topRightParent = document.createElement('div');
+
+        topRightParent.style.position="absolute";
+        topRightParent.style.top="0";
+        topRightParent.style.right="0";
+        topRightParent.id = viewDirection + "TopRight";
+        const StudyDescription = document.createElement('div');
+        StudyDescription.id = 'StudyDescription';
+        topRightParent.appendChild(StudyDescription);
+        const SeriesDate = document.createElement('div');
+        SeriesDate.id = 'SeriesDate';
+        topRightParent.appendChild(SeriesDate);
+        divParentElement.appendChild(topRightParent);
+
 
     }
 
