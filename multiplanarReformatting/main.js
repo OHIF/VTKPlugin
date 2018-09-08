@@ -21,17 +21,33 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         ///////// TOP LEFT
         const topLeftParent = document.createElement('div');
         topLeftParent.style.position="absolute";
-        topLeftParent.style.top="0";
+        topLeftParent.style.top="10px";
+        topLeftParent.style.left="10px";
         topLeftParent.id = viewDirection + "TopLeft";
         const PatientName = document.createElement('div');
         PatientName.id = 'PatientName';
         topLeftParent.appendChild(PatientName);
         divParentElement.appendChild(topLeftParent);
+        const PatientId = document.createElement('div');
+        PatientId.id = 'PatientId';
+        topLeftParent.appendChild(PatientId);
+
+        divParentElement.appendChild(topLeftParent);
         //////////// BOT LEFT
         const botLeftParent = document.createElement('div');
         botLeftParent.style.position="absolute";
-        botLeftParent.style.bottom="0";
+        botLeftParent.style.bottom="10px";
+        botLeftParent.style.left="10px";
         botLeftParent.id = viewDirection + "BottomLeft";
+        const SeriesNumber = document.createElement('div');
+        SeriesNumber.id = 'SeriesNumber';
+        botLeftParent.appendChild(SeriesNumber);
+        const ColsRows = document.createElement('div');
+        ColsRows.id = 'ColsRows';
+        botLeftParent.appendChild(ColsRows);
+
+
+
         const SliceNumber = document.createElement('div');
         SliceNumber.id = 'SliceNumber';
         botLeftParent.appendChild(SliceNumber);
@@ -51,8 +67,8 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         const topRightParent = document.createElement('div');
 
         topRightParent.style.position="absolute";
-        topRightParent.style.top="0";
-        topRightParent.style.right="0";
+        topRightParent.style.top="10px";
+        topRightParent.style.right="10px";
         topRightParent.id = viewDirection + "TopRight";
         const StudyDescription = document.createElement('div');
         StudyDescription.id = 'StudyDescription';
