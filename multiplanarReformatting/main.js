@@ -15,7 +15,7 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
     }
 
     setupViewportText(divParentElement,viewDirection,displaySet){
-        console.log(displaySet);
+
         divParentElement.style.color = '#91b9cd';
         divParentElement.style.position="relative";
         ///////// TOP LEFT
@@ -42,23 +42,16 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         const SeriesNumber = document.createElement('div');
         SeriesNumber.id = 'SeriesNumber';
         botLeftParent.appendChild(SeriesNumber);
+        const SliceNumber = document.createElement('div');
+        SliceNumber.id = 'SliceNumber';
+        botLeftParent.appendChild(SliceNumber);
         const ColsRows = document.createElement('div');
         ColsRows.id = 'ColsRows';
         botLeftParent.appendChild(ColsRows);
 
-
-
-        const SliceNumber = document.createElement('div');
-        SliceNumber.id = 'SliceNumber';
-        botLeftParent.appendChild(SliceNumber);
-        const Position = document.createElement('div');
-        Position.id = 'Position';
-        botLeftParent.appendChild(Position);
-
-        const ViewDirection = document.createElement('div');
-        ViewDirection.id = 'ViewDirection';
-        botLeftParent.appendChild(ViewDirection);
-
+        const SliceThickness = document.createElement('div');
+        SliceThickness.id = 'SliceThickness';
+        botLeftParent.appendChild(SliceThickness);
         const SeriesDescription = document.createElement('div');
         SeriesDescription.id = 'SeriesDescription';
         botLeftParent.appendChild(SeriesDescription);
@@ -77,8 +70,20 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         SeriesDate.id = 'SeriesDate';
         topRightParent.appendChild(SeriesDate);
         divParentElement.appendChild(topRightParent);
+        /////////// BOT RIGHT
+        const botRightParent = document.createElement('div');
 
-
+        botRightParent.style.position="absolute";
+        botRightParent.style.bottom="10px";
+        botRightParent.style.right="10px";
+        botRightParent.id = viewDirection + "BotRight";
+        const Compression = document.createElement('div');
+        Compression.id = 'Compression';
+        botRightParent.appendChild(Compression);
+        const WindowLevel = document.createElement('div');
+        WindowLevel.id = 'WindowLevel';
+        botRightParent.appendChild(WindowLevel);
+        divParentElement.appendChild(botRightParent);
     }
 
     setupViewport(div, viewportData, displaySet) {
