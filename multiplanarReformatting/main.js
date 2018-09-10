@@ -1,5 +1,11 @@
+
+// TODO why can't I load this?
+//import {parentStyle} from "./mprStyles";
+
 // Define with var here so that we can continuously reload this code after making
 // modifications
+
+
 var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends OHIF.plugins.ViewportPlugin {
     constructor(options = {}) {
         super("MultiplanarReformattingPlugin");
@@ -16,8 +22,9 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
 
     setupViewportText(divParentElement,viewDirection,displaySet){
 
+        // TODO , why aren't style sheets loading?
         divParentElement.style.color = '#91b9cd';
-        divParentElement.style.position="relative";
+        divParentElement.style.position = "relative";
         ///////// TOP LEFT
         const topLeftParent = document.createElement('div');
         topLeftParent.style.position="absolute";
