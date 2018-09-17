@@ -5,76 +5,123 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         super("MultiplanarReformattingPlugin");
 
         this.description = "Multiplanar Reformatting OHIF Plugin";
-
         OHIF.plugins.VTKDataCache = OHIF.plugins.VTKDataCache || {};
         OHIF.plugins.VTKDataCache.imageDataCache = new Map;
+
+        this.callbacks = [];
     }
 
     setup() {
         console.warn(`${this.name}: Setup Complete`);
     }
 
+    setupViewportText(divParentElement,viewDirection,displaySet){
+        // TODO , load style sheets.
+        divParentElement.style.position = "relative";
+        divParentElement.style.color = '#91b9cd';
+
+        ///////// TOP LEFT
+        const topLeftParent = document.createElement('div');
+        topLeftParent.style.position="absolute";
+        topLeftParent.style.top="10px";
+        topLeftParent.id = viewDirection + "TopLeft";
+        topLeftParent.style.left="10px";
+        const PatientName = document.createElement('div');
+        PatientName.id = 'PatientName';
+        topLeftParent.appendChild(PatientName);
+        const PatientId = document.createElement('div');
+        divParentElement.appendChild(topLeftParent);
+        PatientId.id = 'PatientId';
+        topLeftParent.appendChild(PatientId);
+
+        //////////// BOT LEFT
+        divParentElement.appendChild(topLeftParent);
+        const botLeftParent = document.createElement('div');
+        botLeftParent.style.position="absolute";
+        botLeftParent.style.bottom="10px";
+        botLeftParent.style.left="10px";
+        botLeftParent.id = viewDirection + "BottomLeft";
+        const SeriesNumber = document.createElement('div');
+        SeriesNumber.id = 'SeriesNumber';
+        botLeftParent.appendChild(SeriesNumber);
+        const SliceNumber = document.createElement('div');
+        SliceNumber.id = 'SliceNumber';
+        botLeftParent.appendChild(SliceNumber);
+        const ColsRows = document.createElement('div');
+        botLeftParent.appendChild(ColsRows);
+        ColsRows.id = 'ColsRows';
+        const SliceThickness = document.createElement('div');
+
+        SliceThickness.id = 'SliceThickness';
+        botLeftParent.appendChild(SliceThickness);
+        const SeriesDescription = document.createElement('div');
+        botLeftParent.appendChild(SeriesDescription);
+        SeriesDescription.id = 'SeriesDescription';
+
+        /////////// TOP RIGHT
+        divParentElement.appendChild(botLeftParent);
+        const topRightParent = document.createElement('div');
+        topRightParent.style.position="absolute";
+        topRightParent.style.top="10px";
+        topRightParent.style.right="10px";
+        topRightParent.id = viewDirection + "TopRight";
+        const StudyDescription = document.createElement('div');
+        StudyDescription.id = 'StudyDescription';
+        topRightParent.appendChild(StudyDescription);
+        const SeriesDate = document.createElement('div');
+        topRightParent.appendChild(SeriesDate);
+        SeriesDate.id = 'SeriesDate';
+
+        divParentElement.appendChild(topRightParent);
+        /////////// BOT RIGHT
+        const botRightParent = document.createElement('div');
+        botRightParent.style.position="absolute";
+        botRightParent.style.bottom="10px";
+        botRightParent.id = viewDirection + "BotRight";
+        botRightParent.style.right="10px";
+        const Compression = document.createElement('div');
+        Compression.id = 'Compression';
+        botRightParent.appendChild(Compression);
+        const WindowLevel = document.createElement('div');
+        botRightParent.appendChild(WindowLevel);
+        divParentElement.appendChild(botRightParent);
+
+        WindowLevel.id = 'WindowLevel';
+    }
+
     setupViewport(div, viewportData, displaySet) {
+        const divParentElement =  div.parentElement;
         const { viewportIndex } = viewportData;
         let { viewDirection } = viewportData.pluginData;
-
-        console.warn(`${this.name}|setupViewport: viewportIndex: ${viewportIndex}`);
 
         if (!displaySet) {
             displaySet = OHIF.plugins.ViewportPlugin.getDisplaySet(viewportIndex);
         }
 
         const { VTKUtils } = window;
+        const genericRenderWindow = vtk.Rendering.Misc.vtkGenericRenderWindow.newInstance({
+            background: [0, 0, 0],
+        });
+
         const imageDataObject = VTKUtils.getImageData(displaySet);
         const imageData = imageDataObject.vtkImageData;
 
         div.innerHTML = '';
 
-        /*
+        genericRenderWindow.setContainer(div);
 
-        --- For debugging purposes ---
+        const actor = MultiplanarReformattingPlugin.setupVTKActor(imageData);
+        const renderer =  genericRenderWindow.getRenderer();
+        const renderWindow =  genericRenderWindow.getRenderWindow();
 
-        div.style.color = '#91b9cd';
-        const p2 = document.createElement('div');
-        p2.id = 'p2';
-        div.appendChild(p2);
-
-        const p21 = document.createElement('div');
-        p21.id = 'p21';
-        div.appendChild(p21);
-
-        const p22 = document.createElement('div');
-        p22.id = 'p22';
-        div.appendChild(p22);
-
-        const p3 = document.createElement('div');
-        p3.id = 'p3';
-        div.appendChild(p3);
-
-        const p4 = document.createElement('div');
-        p4.id = 'p4';
-        div.appendChild(p4);
-
-        */
-
-        const volumeViewer = vtk.Rendering.Misc.vtkGenericRenderWindow.newInstance({
-            background: [0, 0, 0],
-        });
-
-        volumeViewer.setContainer(div);
+        renderer.addActor(actor);
 
         // TODO: VTK's canvas currently does not fill the viewport element
         // after it has been resized. We need to set the height to 100% and
-        // trigger volumeViewer.resize() whenever things are resized.
+        // trigger viewer.resize() whenever things are resized.
         // We might need to find a way to hook onto the OHIF Viewer ResizeManager
         // div.querySelector('canvas').style.height = '100%';
-        volumeViewer.resize();
-
-        const actor = MultiplanarReformattingPlugin.setupVTKActor(imageData);
-        const renderer = volumeViewer.getRenderer();
-        const renderWindow = volumeViewer.getRenderWindow();
-
-        renderer.addVolume(actor);
+        genericRenderWindow.resize();
 
         const scanDirection = imageDataObject.orientation;
         if (!viewDirection) {
@@ -82,41 +129,60 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
             viewDirection = scanDirection;
         }
 
-        const { MPR, ohifInteractorStyleSlice } = VTKUtils;
-        const mode = MPR.computeSlicingMode(scanDirection, viewDirection);        const imageMapper = actor.getMapper();
+        this.setupViewportText(divParentElement, viewDirection, displaySet);
 
-        console.warn(imageData);
-        imageMapper.setInputData(imageData);
+
+        const { MPR, ohifInteractorStyleSlice } = VTKUtils;
+        const imageMapper = actor.getMapper();
+        const mode = MPR.computeSlicingMode(scanDirection, viewDirection);
+
         imageMapper.setSlicingMode(mode);
 
         const IPP = MPR.computeIPP(imageDataObject);
         const interactorStyle = ohifInteractorStyleSlice.newInstance();
         const initialValues = {
-            currentXIndex: Math.round(imageDataObject.dimensions[0] / 2),
-            currentYIndex: Math.round(imageDataObject.dimensions[1] / 2),
-            currentZIndex: Math.round(imageDataObject.dimensions[2] / 2),
+            // zero based indexing;
+            currentXIndex: Math.floor((imageDataObject.dimensions[0] - 1) / 2),
+            currentYIndex: Math.floor((imageDataObject.dimensions[1] - 1) / 2),
+            currentZIndex: Math.floor((imageDataObject.dimensions[2] - 1) / 2),
             xPositions: IPP.x,
             yPositions: IPP.y,
             zPositions: IPP.z,
             xSpacing: imageDataObject.spacing[0],
             ySpacing: imageDataObject.spacing[1],
             zSpacing: imageDataObject.spacing[2]
-        }
-
-        console.warn('initialValues', initialValues);
+        };
 
         interactorStyle.setDirectionalProperties(initialValues);
         interactorStyle.setInteractionMode('IMAGE_SLICE');
+        interactorStyle.setViewDirection(viewDirection);
+        interactorStyle.setDisplaySet(displaySet);
         renderWindow.getInteractor().setInteractorStyle(interactorStyle);
+        viewportData.pluginData.observer  = VTKUtils.ohifInteractorObserver.newInstance();
+        viewportData.pluginData.observer.setInteractor(interactorStyle);
+        viewportData.pluginData.observer.setEnabled(1);
 
-        renderer.resetCamera();
-        renderer.resetCameraClippingRange();
-        console.warn(`scanDirection: ${scanDirection}`);
-        console.warn(`viewDirection: ${viewDirection}`);
-        interactorStyle.moveSliceByWheel(0);
         MPR.computeCamera(scanDirection, viewDirection, renderer.getActiveCamera());
-
+        interactorStyle.handleStartMouseWheel();
+        interactorStyle.moveSliceByWheel(0);
+        interactorStyle.handleEndMouseWheel();
+        renderer.resetCameraClippingRange();
+        renderer.resetCamera();
+        imageData.modified();
         renderWindow.render();
+
+        // Callbacks in the context of each plugin data instance.
+        this.callbacks.push({
+          view: genericRenderWindow,
+          func: function(v){
+            v.getRenderWindow().render();
+          }
+        });
+
+        // Don't load data until the viewports etc are set up (above).
+        if (imageDataObject.loaded === false){
+            VTKUtils.loadImageData(imageDataObject, this.callbacks);
+        }
     }
 
     static setupVTKActor(imageData) {
@@ -128,7 +194,7 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
 
         return actor;
     }
-}
+};
 
 OHIF.plugins.entryPoints["MultiplanarReformattingPlugin"] = function () {
     const multiplanarReformattingPlugin = new MultiplanarReformattingPlugin();
