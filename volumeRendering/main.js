@@ -23,6 +23,12 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         volumeController.render();
     }
 
+    /**
+     * Overriden from base class. Sets up the viewport based on the viewportData and the displaySet.
+     * @param div
+     * @param viewportData
+     * @param displaySet
+     */
     setupViewport(div, viewportData, displaySet) {
         const viewportWrapper =  div.parentElement;
 
@@ -87,6 +93,10 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         }
     }
 
+    /**
+     * Set up the actor into the mapper and intialize the volume properties.
+     * @param imageData
+     */
     static setupVTKActor(imageData) {
         const mapper = vtk.Rendering.Core.vtkVolumeMapper.newInstance();
         mapper.setInputData(imageData);
