@@ -5,7 +5,6 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         super("MultiplanarReformattingPlugin");
 
         this.description = "Multiplanar Reformatting OHIF Plugin";
-        this.callbacks = null;
         OHIF.plugins.VTKDataCache = OHIF.plugins.VTKDataCache || {};
         OHIF.plugins.VTKDataCache.imageDataCache = new Map;
     }
@@ -205,11 +204,9 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         console.log("Plugin " + viewDirection);
 
         // Callbacks in the context of each plugin data instance.
-        if (this.callbacks === null) {
-            this.callbacks = new Map();
-        }
 
-        this.callbacks.set(viewDirection,{direction: viewDirection,view: genericRenderWindow, func: function(v){
+
+        this.callbacks.push({view: genericRenderWindow, func: function(v){
             v.getRenderWindow().render();
         }});
 

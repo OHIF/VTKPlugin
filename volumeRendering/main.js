@@ -29,6 +29,7 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
     static installVTKVolumeController(volumeController,volumeViewer, actor,dark) {
         const renderWindow = volumeViewer.getRenderWindow();
         volumeController.setupContent(renderWindow, actor, dark);
+        volumeController.setExpanded(false);
         volumeController.render();
     }
 
@@ -71,7 +72,18 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         // TODO we assume for now that the background is "dark".
         const isDark = true;
         this.controllerWidget.setContainer(viewportWrapper);
+
+
         VolumeRenderingPlugin.installVTKVolumeController(this.controllerWidget,genericRenderWindow,actor,isDark);
+
+        this.callbacks.push({view: genericRenderWindow, func: function(v){
+                v.getRenderWindow().render();
+            }});
+
+        // Don't load data until the viewports etc are set up (above).
+        if (imageDataObject.loaded === false){
+            VTKUtils.loadImageData(imageDataObject,this.callbacks);
+        }
     }
 
     static setupVTKActor(imageData) {
