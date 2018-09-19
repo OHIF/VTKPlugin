@@ -18,13 +18,7 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         console.warn(`${this.name}: Setup Complete`);
     }
 
-    render(viewportData){
-        viewportData.pluginData.viewer.getRenderWindow().render();
-    }
 
-    static callback(sliceIndex){
-        console.log("callback Volume");
-    }
     //TODO move to VTKUtils?
     static installVTKVolumeController(volumeController,volumeViewer, actor,dark) {
         const renderWindow = volumeViewer.getRenderWindow();
@@ -33,13 +27,18 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         volumeController.render();
     }
 
+    /**
+     * Overriden from base class. Sets up the viewport based on the viewportData and the displaySet.
+     * @param div
+     * @param viewportData
+     * @param displaySet
+     */
     setupViewport(div, viewportData, displaySet) {
         const viewportWrapper =  div.parentElement;
 
         if (!displaySet) {
             displaySet = OHIF.plugins.ViewportPlugin.getDisplaySet(viewportIndex);
         }
-      
 
         viewportWrapper.style.position = "relative";
 
@@ -53,8 +52,6 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         const genericRenderWindow = vtk.Rendering.Misc.vtkGenericRenderWindow.newInstance({
             background: [0, 0, 0],
         });
-
-
 
         genericRenderWindow.setContainer(div);
 
@@ -86,6 +83,10 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         }
     }
 
+    /**
+     * Set up the actor into the mapper and intialize the volume properties.
+     * @param imageData
+     */
     static setupVTKActor(imageData) {
         const mapper = vtk.Rendering.Core.vtkVolumeMapper.newInstance();
         mapper.setInputData(imageData);
