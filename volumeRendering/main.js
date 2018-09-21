@@ -1,14 +1,9 @@
 var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.ViewportPlugin {
     constructor(options = {}) {
         super("VolumeRenderingPlugin");
+        const { VTKUtils } = window;
 
         this.description = "VolumeRendering OHIF Plugin";
-        // TODO why doesn't expanded : false work??
-        this.controllerWidget = vtk.Interaction.UI.vtkVolumeController.newInstance({
-            size: [400, 150],
-            rescaleColorMap: true,
-            expanded: false
-        });
 
         OHIF.plugins.VTKDataCache = OHIF.plugins.VTKDataCache || {};
         OHIF.plugins.VTKDataCache.imageDataCache = new Map;
@@ -38,8 +33,12 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         viewportWrapper.style.position = "relative";
 
         const { VTKUtils } = window;
-        const self = this;
         const imageDataObject = VTKUtils.getImageData(displaySet);
+
+        if (imageDataObject === null){
+            throw new Error('Cached VTK image data object was null.');
+        }
+
         const imageData = imageDataObject.vtkImageData;
 
         div.innerHTML = '';
@@ -61,12 +60,18 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
 
         VTKUtils.installVTKViewer(genericRenderWindow, actor);
 
+        // We need to fix to load our color tables.
+        const controllerWidget = vtk.Interaction.UI.vtkVolumeController.newInstance({
+            size: [400, 150],
+            rescaleColorMap: true,
+            expanded: false
+        });
+
         // TODO we assume for now that the background is "dark".
         const isDark = true;
-        this.controllerWidget.setContainer(viewportWrapper);
+        controllerWidget.setContainer(viewportWrapper);
 
-
-        VolumeRenderingPlugin.installVTKVolumeController(this.controllerWidget,genericRenderWindow,actor,isDark);
+        VolumeRenderingPlugin.installVTKVolumeController(controllerWidget, genericRenderWindow, actor, isDark);
 
         // Callbacks in the context of each plugin data instance.
         this.callbacks.push({
