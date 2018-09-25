@@ -1,14 +1,9 @@
 var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.ViewportPlugin {
     constructor(options = {}) {
         super("VolumeRenderingPlugin");
+        const { VTKUtils } = window;
 
         this.description = "VolumeRendering OHIF Plugin";
-        // TODO why doesn't expanded : false work??
-        this.controllerWidget = vtk.Interaction.UI.vtkVolumeController.newInstance({
-            size: [400, 150],
-            rescaleColorMap: true,
-            expanded: false
-        });
 
         OHIF.plugins.VTKDataCache = OHIF.plugins.VTKDataCache || {};
         OHIF.plugins.VTKDataCache.imageDataCache = new Map;
@@ -43,8 +38,13 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         viewportWrapper.style.position = "relative";
 
         const { VTKUtils } = window;
-        const self = this;
         const imageDataObject = VTKUtils.getImageData(displaySet);
+
+        if (imageDataObject === null){
+            console.log("image data object was null.")
+            return;
+        }
+
         const imageData = imageDataObject.vtkImageData;
 
         div.innerHTML = '';
@@ -66,12 +66,19 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
 
         VTKUtils.installVTKViewer(genericRenderWindow, actor);
 
+        // We need to fix to load our color tables.
+      const controllerWidget = vtk.Interaction.UI.vtkVolumeController.newInstance({
+            size: [400, 150],
+            rescaleColorMap: true,
+
+        });
+
         // TODO we assume for now that the background is "dark".
         const isDark = true;
-        this.controllerWidget.setContainer(viewportWrapper);
+        controllerWidget.setContainer(viewportWrapper);
 
 
-        VolumeRenderingPlugin.installVTKVolumeController(this.controllerWidget,genericRenderWindow,actor,isDark);
+        VolumeRenderingPlugin.installVTKVolumeController(controllerWidget,genericRenderWindow,actor,isDark);
 
         this.callbacks.push({view: genericRenderWindow, func: function(v){
                 v.getRenderWindow().render();
