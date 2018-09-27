@@ -116,6 +116,16 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         this.setBottomRightText(eventData.viewDirection,eventData.displaySet,eventData.window,eventData.level);
     }
 
+
+    updateZoomText(viewDirection,percentage){
+        let botRightParent = document.querySelector('#'+viewDirection+"BotRight");
+        const botRightMap = new Map();
+        let percentageStr = parseInt(percentage,10);
+        const zoomString = "Zoom: " + percentageStr + "%";
+        botRightMap.set("#Zoom",zoomString);
+        MultiplanarReformattingPlugin.setText(botRightParent,botRightMap);
+    }
+
     /**
      * Set up the divs to receive the dynamic text later on, i.e. the slice number, etc.
      * @param divParentElement
@@ -337,10 +347,11 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         interactorStyle.handleEndMouseWheel();
         const bounds = actor.getBounds();
         const spacing = imageData.getSpacing();
-        const percentZoom = VTKUtils.computeZoomPercentage(spacing,mode,renderer,bounds);
-        console.log(percentZoom);
-
+        const imageBounds = imageData.getBounds();
+        const percentZoom = VTKUtils.computeZoomPercentage(spacing, mode, renderer, bounds, imageBounds);
+        this.updateZoomText(viewDirection, percentZoom);
     }
+
 
     /**
      * Associate the imageData with the actor and set the actor into
