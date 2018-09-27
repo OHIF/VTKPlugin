@@ -186,6 +186,9 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         botRightParent.style.bottom="10px";
         botRightParent.id = viewDirection + "BotRight";
         botRightParent.style.right="10px";
+        const Zoom = document.createElement('div');
+        Zoom.id = 'Zoom';
+        botRightParent.appendChild(Zoom);
         const Compression = document.createElement('div');
         Compression.id = 'Compression';
         botRightParent.appendChild(Compression);
@@ -287,7 +290,17 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         interactorStyle.setDisplaySet(displaySet);
         renderWindow.getInteractor().setInteractorStyle(interactorStyle);
         const observer = VTKUtils.ohifInteractorObserver.newInstance();
-        observer.setPluginInstanceData({plugin: this, viewDirection: viewDirection, displaySet: displaySet});
+        observer.setPluginInstanceData({
+                plugin: this,
+                viewDirection: viewDirection,
+                displaySet: displaySet,
+                sliceActor: actor,
+                imageData: imageData,
+                renderer: renderer,
+                slicingMode: mode
+            }
+        );
+
         observer.setEnabled(0);
         observer.setInteractor(interactorStyle);
 
@@ -322,7 +335,10 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         interactorStyle.handleStartMouseWheel();
         interactorStyle.moveSliceByWheel(0);
         interactorStyle.handleEndMouseWheel();
-
+        const bounds = actor.getBounds();
+        const spacing = imageData.getSpacing();
+        const percentZoom = VTKUtils.computeZoomPercentage(spacing,mode,renderer,bounds);
+        console.log(percentZoom);
 
     }
 
