@@ -290,7 +290,7 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         this.callbacks.push({
           view: genericRenderWindow,
           func: function(v){
-            VTKUtils.throttle(v.getRenderWindow().render(), 1500);
+            v.getRenderWindow().render();
           }
         });
 
