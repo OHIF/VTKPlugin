@@ -32,6 +32,23 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
     setupViewport(div, viewportData, displaySet) {
         const viewportWrapper =  div.parentElement;
 
+        // Seems like VolumeRendering in 4-up is not fast enough to use progressive
+        // updating and have a nice user experience. Added loading spinner instead.
+        div.innerHTML = `<div class="imageViewerLoadingIndicator loadingIndicator">
+                            <div class="indicatorContents">
+                                <p>Loading... <i class="fa fa-spin fa-circle-o-notch fa-fw"></i></p>
+                            </div>
+                        </div>`;
+
+        // Reusing the OHIF loading indicator here... this is a bit ugly
+        const loadingIndicator = div.querySelector('.imageViewerLoadingIndicator');
+
+        // Default values are position:absolute and display: none so we have to change
+        // them here if we want this to display
+        loadingIndicator.style.position = 'relative';
+        loadingIndicator.style.display = 'block';
+
+
         if (!displaySet) {
             displaySet = OHIF.plugins.ViewportPlugin.getDisplaySet(viewportIndex);
         }
@@ -47,49 +64,45 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
 
         const imageData = imageDataObject.vtkImageData;
 
-        div.innerHTML = '';
+        function displayVolumeRendering() {
+          div.innerHTML = '';
 
-        const genericRenderWindow = vtk.Rendering.Misc.vtkGenericRenderWindow.newInstance({
+          const genericRenderWindow = vtk.Rendering.Misc.vtkGenericRenderWindow.newInstance({
             background: [0, 0, 0],
-        });
+          });
 
-        genericRenderWindow.setContainer(div);
+          genericRenderWindow.setContainer(div);
 
-        // TODO: VTK's canvas currently does not fill the viewport element
-        // after it has been resized. We need to set the height to 100% and
-        // trigger volumeViewer.resize() whenever things are resized.
-        // We might need to find a way to hook onto the OHIF Viewer ResizeManager
-        // div.querySelector('canvas').style.height = '100%';
-        genericRenderWindow.resize();
+          // TODO: VTK's canvas currently does not fill the viewport element
+          // after it has been resized. We need to set the height to 100% and
+          // trigger volumeViewer.resize() whenever things are resized.
+          // We might need to find a way to hook onto the OHIF Viewer ResizeManager
+          // div.querySelector('canvas').style.height = '100%';
+          genericRenderWindow.resize();
 
-        const actor = VolumeRenderingPlugin.setupVTKActor(imageData);
+          const actor = VolumeRenderingPlugin.setupVTKActor(imageData);
 
-        VTKUtils.installVTKViewer(genericRenderWindow, actor);
+          VTKUtils.installVTKViewer(genericRenderWindow, actor);
 
-        // We need to fix to load our color tables.
-        const controllerWidget = vtk.Interaction.UI.vtkVolumeController.newInstance({
+          // We need to fix to load our color tables.
+          const controllerWidget = vtk.Interaction.UI.vtkVolumeController.newInstance({
             size: [400, 150],
-            rescaleColorMap: true,
+            rescaleColorMap: false,
             expanded: false
-        });
+          });
 
-        // TODO we assume for now that the background is "dark".
-        const isDark = true;
-        controllerWidget.setContainer(viewportWrapper);
+          // TODO we assume for now that the background is "dark".
+          const isDark = true;
+          controllerWidget.setContainer(viewportWrapper);
 
-        VolumeRenderingPlugin.installVTKVolumeController(controllerWidget, genericRenderWindow, actor, isDark);
-
-        // Callbacks in the context of each plugin data instance.
-        this.callbacks.push({
-          view: genericRenderWindow,
-          func: function(v){
-            v.getRenderWindow().render();
-          }
-        });
+          VolumeRenderingPlugin.installVTKVolumeController(controllerWidget, genericRenderWindow, actor, isDark);
+        }
 
         // Don't load data until the viewports etc are set up (above).
-        if (imageDataObject.loaded === false){
-            VTKUtils.loadImageData(imageDataObject, this.callbacks);
+        if (imageDataObject.loaded === true) {
+          displayVolumeRendering();
+        } else {
+          VTKUtils.loadImageData(imageDataObject).then(displayVolumeRendering);
         }
     }
 
