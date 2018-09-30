@@ -118,6 +118,16 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         this.setBottomRightText(eventData.viewDirection,eventData.displaySet,eventData.window,eventData.level);
     }
 
+
+    updateZoomText(viewDirection,percentage){
+        let botRightParent = document.querySelector('#'+viewDirection+"BotRight");
+        const botRightMap = new Map();
+        let percentageStr = parseInt(percentage,10);
+        const zoomString = "Zoom: " + percentageStr + "%";
+        botRightMap.set("#Zoom",zoomString);
+        MultiplanarReformattingPlugin.setText(botRightParent,botRightMap);
+    }
+
     /**
      * Set up the divs to receive the dynamic text later on, i.e. the slice number, etc.
      * @param divParentElement
@@ -188,6 +198,9 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         botRightParent.style.bottom="10px";
         botRightParent.id = viewDirection + "BotRight";
         botRightParent.style.right="10px";
+        const Zoom = document.createElement('div');
+        Zoom.id = 'Zoom';
+        botRightParent.appendChild(Zoom);
         const Compression = document.createElement('div');
         Compression.id = 'Compression';
         botRightParent.appendChild(Compression);
@@ -274,7 +287,7 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         interactorStyle.setDisplaySet(displaySet);
         renderWindow.getInteractor().setInteractorStyle(interactorStyle);
         const observer = VTKUtils.ohifInteractorObserver.newInstance();
-        observer.setPluginInstanceData({plugin: this, viewDirection: viewDirection, displaySet: displaySet});
+        observer.setPluginInstanceData({plugin: this, viewDirection: viewDirection, displaySet: displaySet,slicingMode: mode});
         observer.setEnabled(0);
         observer.setInteractor(interactorStyle);
 
@@ -304,6 +317,9 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         interactorStyle.handleStartMouseWheel();
         interactorStyle.moveSliceByWheel(0);
         interactorStyle.handleEndMouseWheel();
+        const actorBounds = actor.getBounds();
+        const percentage = VTKUtils.computeZoomPercentage(imageData.getSpacing(),mode,renderer,actorBounds,imageData.getBounds());
+        this.updateZoomText(viewDirection,percentage);
     }
 
     /**
