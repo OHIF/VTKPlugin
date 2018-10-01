@@ -304,6 +304,14 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
           view: genericRenderWindow,
           func: function(v){
             v.getRenderWindow().render();
+            const range = imageData.getPointData().getScalars().getRange();
+            console.log(range);
+              let props = interactorStyle.findSlice();
+
+              if (props){
+                  props.getProperty().setColorWindow(range[1] - range[0]);
+                  props.getProperty().setColorLevel(range[0] + ((range[1] - range[0]) / 2));
+              }
           }
         });
 
@@ -320,6 +328,8 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         const actorBounds = actor.getBounds();
         const percentage = VTKUtils.computeZoomPercentage(imageData.getSpacing(),mode,renderer,actorBounds,imageData.getBounds());
         this.updateZoomText(viewDirection,percentage);
+
+
     }
 
     /**
