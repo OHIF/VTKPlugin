@@ -150,6 +150,27 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
     }
 
 
+    orientCamera(camera,orientation){
+        switch (orientation){
+            case 'I':
+                break;
+            case 'S':
+                camera.elevation(-89.99); // TODO camera signularuty at -90???????
+                break;
+            case 'A':
+                break;
+            case 'P':
+                break;
+            case 'L':
+                break;
+            case 'R':
+                break;
+            default:
+                console.assert("unknown orientation");
+                break;
+        }
+    }
+
     /**
      * Overriden from base class. Sets up the viewport based on the viewportData and the displaySet.
      * @param div
@@ -181,9 +202,15 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
             displaySet = OHIF.plugins.ViewportPlugin.getDisplaySet(viewportIndex);
         }
 
+        // Reject image sets that are less than 20 images.
+        if (displaySet.images.length < 20){
+            div.innerHTML = "";
+            throw new Error("Series has too few images for this plugin.");
+        }
         viewportWrapper.style.position = "relative";
 
         const { VTKUtils } = window;
+
         const imageDataObject = VTKUtils.getImageData(displaySet);
 
         if (imageDataObject === null){
@@ -227,6 +254,10 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
 
           self.setupViewportText(viewportWrapper, viewDirection, displaySet);
           self.updateViewportText(viewDirection, displaySet);
+
+          self.orientCamera(genericRenderWindow.getRenderer().getActiveCamera(),imageDataObject.orientation);
+          genericRenderWindow.getRenderWindow().render();
+
         }
 
         // Don't load data until the viewports etc are set up (above).

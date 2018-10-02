@@ -58,7 +58,10 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
         let topRightParent = document.querySelector('#'+viewDirection+"TopRight");
 
         const topRightMap = new Map();
-        let studyDescription = displaySet.images[0]._study.studyDescription.replace(/\^/g, " ");
+        let studyDescription = "";
+        if (displaySet.images[0]._study.studyDescription){
+            studyDescription = displaySet.images[0]._study.studyDescription.replace(/\^/g, " ");
+        }
         let studyDate = displaySet.images[0]._study.studyDate;
 
         let seriesYear = parseInt(studyDate.substr(0,4),10);
@@ -88,7 +91,7 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
 
     }
 
-    setBottomRightText(viewDirection,displaySet,window,level){
+    static setBottomRightText(viewDirection,displaySet,window,level){
         let botRightParent = document.querySelector('#'+viewDirection+"BotRight");
         const botRightMap = new Map();
         let compStr = displaySet.images[0]._data.lossyImageCompression === undefined ? "Lossless / Uncompressed" :  ds.images[0]._data.lossyImageCompression;
@@ -104,10 +107,11 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
      * @param eventData
      */
     updateViewportText(eventData){
+        debugger;
         MultiplanarReformattingPlugin.setBottomLeftText(eventData.viewDirection, eventData.displaySet,eventData.sliceIndex,eventData.sliceCount);
         MultiplanarReformattingPlugin.setTopLeftText(eventData.viewDirection,eventData.displaySet);
         MultiplanarReformattingPlugin.setTopRightText(eventData.viewDirection,eventData.displaySet);
-        this.setBottomRightText(eventData.viewDirection,eventData.displaySet,eventData.window,eventData.level);
+        MultiplanarReformattingPlugin.setBottomRightText(eventData.viewDirection,eventData.displaySet,eventData.window,eventData.level);
     }
 
     /**
@@ -115,7 +119,7 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
      * @param eventData
      */
     updateWindowLevelText(eventData){
-        this.setBottomRightText(eventData.viewDirection,eventData.displaySet,eventData.window,eventData.level);
+        MultiplanarReformattingPlugin.setBottomRightText(eventData.viewDirection,eventData.displaySet,eventData.window,eventData.level);
     }
 
 
@@ -218,12 +222,17 @@ var MultiplanarReformattingPlugin = class MultiplanarReformattingPlugin extends 
      * @param displaySet
      */
     setupViewport(div, viewportData, displaySet) {
+
         const divParentElement = div.parentElement;
         const { viewportIndex } = viewportData;
         let { viewDirection } = viewportData.pluginData;
 
         if (!displaySet) {
             displaySet = OHIF.plugins.ViewportPlugin.getDisplaySet(viewportIndex);
+        }
+        // Reject image sets that are less than 20 images.
+        if (displaySet.images.length < 20){
+            throw new Error("Series has too few images for this plugin.");
         }
 
         const { VTKUtils } = window;
