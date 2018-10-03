@@ -23,6 +23,154 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
         volumeController.render();
     }
 
+
+    /**
+     * Set up the divs to receive the dynamic text later on, i.e. patient name, etc.
+     * @param divParentElement
+     * @param viewDirection
+     * @param displaySet
+     */
+    setupViewportText(divParentElement,viewDirection,displaySet){
+        // TODO , load style sheets.
+        divParentElement.style.position = "relative";
+        divParentElement.style.color = '#91b9cd';
+
+        ///////// TOP LEFT
+        // NO TOP LEFT because of Volume Widget.
+
+        //////////// BOT LEFT
+        const botLeftParent = document.createElement('div');
+        botLeftParent.style.position="absolute";
+        botLeftParent.style.bottom="10px";
+        botLeftParent.style.left="10px";
+        botLeftParent.id = viewDirection + "BottomLeft";
+        const SeriesNumber = document.createElement('div');
+        SeriesNumber.id = 'SeriesNumber';
+        botLeftParent.appendChild(SeriesNumber);
+
+        const SeriesDescription = document.createElement('div');
+        botLeftParent.appendChild(SeriesDescription);
+        SeriesDescription.id = 'SeriesDescription';
+
+        /////////// TOP RIGHT
+        divParentElement.appendChild(botLeftParent);
+        const topRightParent = document.createElement('div');
+        topRightParent.style.position="absolute";
+        topRightParent.style.top="10px";
+        topRightParent.style.right="10px";
+        topRightParent.id = viewDirection + "TopRight";
+        const PatientName = document.createElement('div');
+        PatientName.id = 'PatientName';
+        topRightParent.appendChild(PatientName);
+        const PatientId = document.createElement('div');
+        divParentElement.appendChild(topRightParent);
+        PatientId.id = 'PatientId';
+        topRightParent.appendChild(PatientId);
+
+        const StudyDescription = document.createElement('div');
+        StudyDescription.id = 'StudyDescription';
+        topRightParent.appendChild(StudyDescription);
+        const SeriesDate = document.createElement('div');
+        topRightParent.appendChild(SeriesDate);
+        SeriesDate.id = 'SeriesDate';
+
+        divParentElement.appendChild(topRightParent);
+        /////////// BOT RIGHT
+        const botRightParent = document.createElement('div');
+        botRightParent.style.position="absolute";
+        botRightParent.style.bottom="10px";
+        botRightParent.id = viewDirection + "BotRight";
+        botRightParent.style.right="10px";
+    }
+
+    static setText(parent, textMap){
+        for (let [key, value] of textMap) {
+            parent.querySelector(key).innerHTML = value;
+        }
+    }
+
+    static setBottomLeftText(viewDirection, displaySet){
+        let botLeftParent = document.querySelector('#'+viewDirection+"BottomLeft");
+
+        const bottomLeftMap = new Map();
+        let seriesNum = displaySet.seriesNumber;
+        let seriesDescription = displaySet.images[0]._series.seriesDescription.replace(/\^/g, " ");
+        bottomLeftMap.set("#SeriesNumber","Ser:" + " " + seriesNum);
+        bottomLeftMap.set("#SeriesDescription",seriesDescription);
+        VolumeRenderingPlugin.setText(botLeftParent,bottomLeftMap);
+    }
+
+    static setTopRightText(viewDirection, displaySet){
+        let topRightParent = document.querySelector('#'+viewDirection+"TopRight");
+
+        const topRightMap = new Map();
+        let patientName = displaySet.images[0]._study.patientName.replace(/\^/g, " ");
+        let patientId = displaySet.images[0]._study.patientId;
+
+
+        let studyDescription = displaySet.images[0]._study.studyDescription.replace(/\^/g, " ");
+        let studyDate = displaySet.images[0]._study.studyDate;
+
+        let seriesYear = parseInt(studyDate.substr(0,4),10);
+        let seriesMonth = parseInt(studyDate.substr(4,2),10);
+        let seriesDay = parseInt(studyDate.substr(6,2),10);
+        let studyTime =  displaySet.images[0]._study.studyTime;
+        let splitTime = studyTime.split(".");
+        let leftTime = splitTime[0];
+        let seriesHour = parseInt(leftTime.substr(0,2),10);
+        let seriesMinute = parseInt(leftTime.substr(2,2),10);
+        let seriesSecond = parseInt(leftTime.substr(4,2),10);
+        let sd = new Date(seriesYear, seriesMonth-1, seriesDay,seriesHour,seriesMinute,seriesSecond);
+        const options = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            hour12: false,
+        };
+        let seriesDateString = sd.toLocaleDateString("en-US",options);
+        topRightMap.set("#PatientName",patientName);
+        topRightMap.set("#PatientId",patientId);
+        topRightMap.set("#StudyDescription",studyDescription);
+        topRightMap.set("#SeriesDate",seriesDateString);
+        VolumeRenderingPlugin.setText(topRightParent,topRightMap);
+    }
+
+
+    /**
+     * Updates the text. The viewDirection helps us find the correct divs.
+     * @param viewDirection
+     * @param displaySet
+     */
+    updateViewportText(viewDirection,displaySet){
+        VolumeRenderingPlugin.setBottomLeftText(viewDirection,displaySet);
+        VolumeRenderingPlugin.setTopRightText(viewDirection,displaySet);
+    }
+
+
+    orientCamera(camera,orientation){
+        switch (orientation){
+            case 'I':
+                break;
+            case 'S':
+                camera.elevation(-89.99); // TODO camera signularuty at -90???????
+                break;
+            case 'A':
+                break;
+            case 'P':
+                break;
+            case 'L':
+                break;
+            case 'R':
+                break;
+            default:
+                console.assert("unknown orientation");
+                break;
+        }
+    }
+
     /**
      * Overriden from base class. Sets up the viewport based on the viewportData and the displaySet.
      * @param div
@@ -31,7 +179,8 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
      */
     setupViewport(div, viewportData, displaySet) {
         const viewportWrapper =  div.parentElement;
-
+        const self = this;
+        let { viewDirection } = viewportData.pluginData;
         // Seems like VolumeRendering in 4-up is not fast enough to use progressive
         // updating and have a nice user experience. Added loading spinner instead.
         div.innerHTML = `<div class="imageViewerLoadingIndicator loadingIndicator">
@@ -53,9 +202,15 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
             displaySet = OHIF.plugins.ViewportPlugin.getDisplaySet(viewportIndex);
         }
 
+        // Reject image sets that are less than 20 images.
+        if (displaySet.images.length < 20){
+            div.innerHTML = "";
+            throw new Error("Series has too few images for this plugin.");
+        }
         viewportWrapper.style.position = "relative";
 
         const { VTKUtils } = window;
+
         const imageDataObject = VTKUtils.getImageData(displaySet);
 
         if (imageDataObject === null){
@@ -96,6 +251,13 @@ var VolumeRenderingPlugin = class VolumeRenderingPlugin extends OHIF.plugins.Vie
           controllerWidget.setContainer(viewportWrapper);
 
           VolumeRenderingPlugin.installVTKVolumeController(controllerWidget, genericRenderWindow, actor, isDark);
+
+          self.setupViewportText(viewportWrapper, viewDirection, displaySet);
+          self.updateViewportText(viewDirection, displaySet);
+
+          self.orientCamera(genericRenderWindow.getRenderer().getActiveCamera(),imageDataObject.orientation);
+          genericRenderWindow.getRenderWindow().render();
+
         }
 
         // Don't load data until the viewports etc are set up (above).
